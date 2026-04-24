@@ -240,15 +240,20 @@ def _render_evaluate_job() -> None:
         if ingest_result is None:
             # Fallback: call Python directly
             try:
-                from career_ops.ingest import ingest_job
+                from career_ops.ingest import ingest
                 from career_ops import storage
                 storage.init_db()
-                job = ingest_job(url=url or None, text=jd_text or None)
-                ingest_result = {"job_id": job.id, "title": job.title}
+                source = url if url else jd_text
+                job_id_direct = ingest(source)
+                # fetch title from DB
+                for s in storage.session():
+                    job_row = s.query(storage.Job).filter_by(id=job_id_direct).one_or_none()
+                    title_direct = job_row.title if job_row else f"Job #{job_id_direct}"
+                ingest_result = {"job_id": job_id_direct, "title": title_direct}
             except Exception as exc:
                 status.update(label="Ingest failed", state="error")
                 st.error(f"Could not ingest the job: {exc}")
-                st.info("Make sure career-ops is running locally (`career-ops serve`) or that ANTHROPIC_API_KEY is set.")
+                st.info("Make sure ANTHROPIC_API_KEY is set in your environment or Streamlit secrets.")
                 return
 
         job_id = ingest_result.get("job_id") or ingest_result.get("id")
@@ -269,10 +274,10 @@ def _render_evaluate_job() -> None:
                     "company": ev.company,
                     "title": ev.title,
                     "location": ev.location,
-                    "h1b_history": ev.h1b_history,
+                    "h1b_history": getattr(ev, "h1b_history", "—"),
                     "model": ev.model,
                     "rubric_version": ev.rubric_version,
-                    "dimension_scores": [d.dict() for d in ev.dimension_scores],
+                    "dimension_scores": [d.model_dump() for d in ev.dimension_scores],
                 }
             except Exception as exc:
                 status.update(label="Evaluation failed", state="error")
