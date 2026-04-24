@@ -9,4 +9,4 @@ pydantic-settings>=2.3
 pyyaml>=6.0
 rich>=13.7
 structlog>=24.1
-google-generativeai>=0.7
+google-genai>=0.7

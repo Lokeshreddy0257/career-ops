@@ -68,15 +68,16 @@ def _call_provider(prompt: str, *, system: str | None, temperature: float, provi
 
 
 def _call_gemini(prompt: str, *, system: str | None, temperature: float) -> str:
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types
 
     s = settings()
-    genai.configure(api_key=s.gemini_api_key)
+    client = genai.Client(api_key=s.gemini_api_key)
     full_prompt = f"{system}\n\n{prompt}" if system else prompt
-    model = genai.GenerativeModel(s.gemini_model)
-    response = model.generate_content(
-        full_prompt,
-        generation_config=genai.GenerationConfig(temperature=temperature),
+    response = client.models.generate_content(
+        model=s.gemini_model,
+        contents=full_prompt,
+        config=types.GenerateContentConfig(temperature=temperature),
     )
     return response.text
 

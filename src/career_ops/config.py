@@ -21,7 +21,7 @@ class Settings(BaseSettings):
 
     # LLM — set llm_provider or let it auto-detect from which key is present
     llm_provider: str = "auto"               # "auto" | "gemini" | "anthropic" | "openai"
-    gemini_model: str = "gemini-1.5-flash"
+    gemini_model: str = "gemini-2.0-flash"
     anthropic_model: str = "claude-sonnet-4-5"
     openai_model: str = "gpt-4o"
     gemini_api_key: str | None = None
