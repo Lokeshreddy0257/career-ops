@@ -47,6 +47,15 @@ def _api_get(path: str, **params) -> Any:
         return None
 
 
+def _api_post(path: str, payload: dict | None = None) -> Any:
+    try:
+        r = httpx.post(f"{API_URL}{path}", json=payload, timeout=120.0)
+        r.raise_for_status()
+        return r.json()
+    except Exception:
+        return None
+
+
 def _fetch_stats() -> dict[str, Any]:
     data = _api_get("/stats")
     if data is not None:
@@ -168,12 +177,15 @@ GRADE_COLORS = {
 
 def main() -> None:
     st.set_page_config(page_title="career-ops", layout="wide", page_icon=":briefcase:")
-    st.title("career-ops")
-    st.caption(f"API: `{API_URL}` · fallback to direct DB if unreachable")
+    st.title("career-ops · AI Job Search")
+    st.caption("Paste a job URL to get an AI-grounded evaluation against your resume.")
 
-    tab_stats, tab_evals, tab_pipeline, tab_rubric = st.tabs(
-        ["Stats", "Evaluations", "Pipeline", "Rubric inspector"]
+    tab_eval, tab_stats, tab_evals, tab_pipeline, tab_rubric = st.tabs(
+        ["Evaluate a Job", "Stats", "Evaluations", "Pipeline", "Rubric inspector"]
     )
+
+    with tab_eval:
+        _render_evaluate_job()
 
     with tab_stats:
         _render_stats()
@@ -186,6 +198,129 @@ def main() -> None:
 
     with tab_rubric:
         _render_rubric_inspector()
+
+
+def _render_evaluate_job() -> None:
+    st.subheader("Paste a job URL or description")
+
+    url = st.text_input(
+        "Job URL",
+        placeholder="https://boards.greenhouse.io/anthropic/jobs/...",
+        label_visibility="collapsed",
+    )
+
+    with st.expander("Or paste raw job description text instead"):
+        jd_text = st.text_area(
+            "Job description", height=220,
+            placeholder="Paste the full job description here if you don't have a URL...",
+            label_visibility="collapsed",
+        )
+
+    evaluate_btn = st.button("Evaluate this job", type="primary", use_container_width=True)
+
+    if not evaluate_btn:
+        st.markdown(
+            "<div style='text-align:center;color:#888;margin-top:40px;font-size:14px'>"
+            "Paste a URL above and click Evaluate — results appear here in ~30 seconds."
+            "</div>",
+            unsafe_allow_html=True,
+        )
+        return
+
+    if not url and not jd_text:
+        st.warning("Please enter a job URL or paste the job description text.")
+        return
+
+    with st.status("Running evaluation…", expanded=True) as status:
+        # ── Step 1: ingest ──────────────────────────────────────────
+        st.write("Step 1 / 2 — Ingesting job…")
+        ingest_payload = {"url": url} if url else {"text": jd_text}
+        ingest_result = _api_post("/ingest", ingest_payload)
+
+        if ingest_result is None:
+            # Fallback: call Python directly
+            try:
+                from career_ops.ingest import ingest_job
+                from career_ops import storage
+                storage.init_db()
+                job = ingest_job(url=url or None, text=jd_text or None)
+                ingest_result = {"job_id": job.id, "title": job.title}
+            except Exception as exc:
+                status.update(label="Ingest failed", state="error")
+                st.error(f"Could not ingest the job: {exc}")
+                st.info("Make sure career-ops is running locally (`career-ops serve`) or that ANTHROPIC_API_KEY is set.")
+                return
+
+        job_id = ingest_result.get("job_id") or ingest_result.get("id")
+        title = ingest_result.get("title", f"Job #{job_id}")
+        st.write(f"Ingested: **{title}** (job id `{job_id}`)")
+
+        # ── Step 2: evaluate ────────────────────────────────────────
+        st.write("Step 2 / 2 — Scoring against your resume…")
+        eval_result = _api_post(f"/evaluate/{job_id}")
+
+        if eval_result is None:
+            try:
+                from career_ops.evaluator import evaluate_job
+                ev = evaluate_job(job_id)
+                eval_result = {
+                    "grade": ev.grade,
+                    "percent": ev.percent,
+                    "company": ev.company,
+                    "title": ev.title,
+                    "location": ev.location,
+                    "h1b_history": ev.h1b_history,
+                    "model": ev.model,
+                    "rubric_version": ev.rubric_version,
+                    "dimension_scores": [d.dict() for d in ev.dimension_scores],
+                }
+            except Exception as exc:
+                status.update(label="Evaluation failed", state="error")
+                st.error(f"Could not evaluate: {exc}")
+                return
+
+        status.update(label="Done!", state="complete")
+
+    _display_eval_result(eval_result)
+
+
+def _display_eval_result(ev: dict) -> None:
+    grade = ev.get("grade", "?")
+    percent = float(ev.get("percent", 0))
+    color = GRADE_COLORS.get(grade, "#555")
+
+    st.markdown(
+        f"<div style='background:{color};color:white;border-radius:16px;"
+        f"padding:28px;text-align:center;margin:20px 0'>"
+        f"<div style='font-size:64px;font-weight:900;line-height:1'>{grade}</div>"
+        f"<div style='font-size:20px;margin-top:8px;opacity:0.9'>{percent:.1f}%</div>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Company", ev.get("company") or "—")
+    c2.metric("Location", ev.get("location") or "—")
+    c3.metric("H-1B history", ev.get("h1b_history") or "—")
+
+    st.caption(
+        f"**{ev.get('title', '')}** · model: `{ev.get('model', '—')}` "
+        f"· rubric: `{ev.get('rubric_version', '—')}`"
+    )
+
+    dims = ev.get("dimension_scores") or []
+    if dims:
+        st.subheader("Dimension Breakdown")
+        for d in sorted(dims, key=lambda x: x.get("score", 0), reverse=True):
+            score = d.get("score", 0)
+            icon = "🟢" if score >= 4 else "🟡" if score >= 3 else "🔴"
+            with st.expander(f"{icon} **{d.get('dimension_id', '')}** — {score}/5",
+                             expanded=score >= 4 or score <= 1):
+                st.write(d.get("reasoning", ""))
+                if d.get("citations"):
+                    st.caption("Cited resume chunks:")
+                    for cid in d["citations"]:
+                        st.code(cid, language=None)
 
 
 def _render_stats() -> None:
