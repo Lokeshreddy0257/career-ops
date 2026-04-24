@@ -1,0 +1,60 @@
+services:
+
+  api:
+    build: .
+    image: career-ops:latest
+    container_name: career-ops-api
+    restart: unless-stopped
+    command: ["career-ops", "serve", "--host", "0.0.0.0", "--port", "8000"]
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/home/app/career-ops/data
+      - ./artifacts:/home/app/career-ops/artifacts
+      - ./cv.md:/home/app/career-ops/cv.md:ro
+      - ./config:/home/app/career-ops/config:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://127.0.0.1:8000/healthz',timeout=3); sys.exit(0)\" || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  dashboard:
+    build: .
+    image: career-ops:latest
+    container_name: career-ops-dashboard
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      CAREER_OPS_API_URL: "http://api:8000"
+    env_file:
+      - .env
+    ports:
+      - "8501:8501"
+    volumes:
+      # Mount the working state so evaluations persist between runs.
+      - ./data:/home/app/career-ops/data
+      - ./artifacts:/home/app/career-ops/artifacts
+      # Mount source files read-only so cv.md / config edits take effect
+      # without rebuilding the image.
+      - ./cv.md:/home/app/career-ops/cv.md:ro
+      - ./config:/home/app/career-ops/config:ro
+
+  # Convenience CLI runner — `docker compose run --rm cli evaluate 1`
+  cli:
+    image: career-ops:latest
+    build: .
+    entrypoint: ["career-ops"]
+    profiles: ["tools"]
+    env_file:
+      - .env
+    volumes:
+      - ./data:/home/app/career-ops/data
+      - ./artifacts:/home/app/career-ops/artifacts
+      - ./cv.md:/home/app/career-ops/cv.md:ro
+      - ./config:/home/app/career-ops/config:ro

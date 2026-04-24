@@ -1,0 +1,43 @@
+id: anthropic_applied_ai
+company: "Anthropic"
+title: "Member of Technical Staff, Applied AI"
+location: "Remote (US)"
+h1b_history: "heavy"
+
+expected:
+  grade: "A+"
+  percent_range: [90, 95]
+  dimensions:
+    technical_fit_genai: 5     # core RAG / LLM-app role → Lokesh's Intuit work
+    stack_overlap:        4     # Python + LangChain + vector DBs present; some infra diff
+    seniority_match:      4     # Senior IC — aligned
+    domain_alignment:     4     # AI-native — adjacent to Intuit-era GenAI
+    compensation:         4     # well above Lokesh's target TC
+    location:             5     # remote-US
+    growth_trajectory:    5     # clear ladder + public roadmap
+    company_stage:        5     # best-in-class AI lab
+    culture_mission:      5     # strong eng blog + public research
+
+jd: |
+  Anthropic is looking for a Senior ML Engineer to join our Applied AI
+  team. You will build production RAG systems, LLM-powered developer
+  tools, and evaluation infrastructure on top of Claude.
+
+  Responsibilities:
+    - Design and ship production LLM / RAG applications end-to-end in
+      Python (FastAPI, LangChain).
+    - Build retrieval pipelines using sentence-transformers / FAISS /
+      Pinecone with human-in-the-loop evaluation.
+    - Partner with research on prompt engineering and fine-tuning.
+    - Own reliability, cost, and latency of production LLM services.
+
+  What we're looking for:
+    - 4+ years of ML/software engineering; Senior IC.
+    - Deep Python, strong on OOP and async patterns.
+    - Production LLM / RAG experience; familiarity with Claude or GPT-4
+      APIs.
+    - Experience with vector databases, embeddings, retrieval tuning.
+    - AWS or GCP, Docker, CI/CD.
+
+  Location: Remote (US) or SF / NYC hybrid.
+  Visa: we regularly sponsor H-1B and have a strong immigration team.

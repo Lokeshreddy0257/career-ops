@@ -1,0 +1,39 @@
+id: no_sponsor_onsite
+company: "TraditionalCorp"
+title: "Data Engineer — ML Pipelines"
+location: "Atlanta, GA (onsite 5 days)"
+h1b_history: "none"
+
+expected:
+  grade: "F"
+  percent_range: [40, 46]          # computed from labeled dims under rubric v2026.04.23
+  dimensions:
+    technical_fit_genai: 1       # ETL-heavy, minimal ML / zero LLM
+    stack_overlap:        3       # Python + SQL, but Airflow-only
+    seniority_match:      3       # Mid-Senior boundary
+    domain_alignment:     2
+    compensation:         2       # below target TC
+    location:             2       # onsite 5 days outside Charlotte
+    growth_trajectory:    2       # narrow role
+    company_stage:        3
+    culture_mission:      2       # sparse eng blog
+
+jd: |
+  Join TraditionalCorp as a Data Engineer on our ML Pipelines team. You
+  will build and operate data-ingestion jobs feeding our ML platform.
+
+  You will:
+    - Author Airflow DAGs ingesting from Salesforce, Snowflake, and
+      internal APIs.
+    - Build Python ETL pipelines and maintain our medallion-architecture
+      lake.
+    - Support data-science partners with clean, tested datasets.
+    - On-call rotation (1 week every 6 weeks).
+
+  Requirements:
+    - 3+ years of data engineering, Python + SQL.
+    - Airflow, dbt, Snowflake.
+    - Strong ETL fundamentals.
+
+  Onsite 5 days/week in Atlanta, GA. Relocation not offered.
+  Note: we are not able to offer visa sponsorship at this time.

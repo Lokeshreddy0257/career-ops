@@ -1,0 +1,84 @@
+# config/portals.yml
+# Playwright selectors per career-site platform. `portals.py` reads this
+# file and dispatches by portal_type.
+#
+# This is intentionally conservative: Greenhouse / Lever / Ashby have
+# public JSON endpoints, so we prefer those over HTML scraping where
+# possible. Workday and custom pages need real Playwright.
+
+portals:
+
+  greenhouse:
+    # Prefer public JSON: https://boards-api.greenhouse.io/v1/boards/<slug>/jobs
+    strategy: "json_api"
+    api_pattern: "https://boards-api.greenhouse.io/v1/boards/{slug}/jobs?content=true"
+    extract:
+      id: "id"
+      title: "title"
+      location: "location.name"
+      url: "absolute_url"
+      content_html: "content"
+
+  lever:
+    strategy: "json_api"
+    api_pattern: "https://api.lever.co/v0/postings/{slug}?mode=json"
+    extract:
+      id: "id"
+      title: "text"
+      location: "categories.location"
+      url: "hostedUrl"
+      content_html: "descriptionPlain"
+
+  ashby:
+    strategy: "json_api"
+    api_pattern: "https://api.ashbyhq.com/posting-api/job-board/{slug}?includeCompensation=true"
+    extract:
+      id: "id"
+      title: "title"
+      location: "locationName"
+      url: "jobUrl"
+      content_html: "descriptionHtml"
+
+  workday:
+    # Workday needs real Playwright — every tenant configures slightly differently.
+    strategy: "playwright_html"
+    selectors:
+      job_list: "a[data-automation-id='jobTitle']"
+      pagination_next: "button[data-automation-id='next']"
+      detail_container: "div[data-automation-id='jobPostingDescription']"
+
+  workable:
+    strategy: "json_api"
+    api_pattern: "https://apply.workable.com/api/v3/accounts/{slug}/jobs"
+    extract:
+      id: "id"
+      title: "title"
+      location: "location.city"
+      url: "url"
+      content_html: "description"
+
+  custom:
+    # Per-company one-off selectors. Override these at the company
+    # level by adding a `portal_overrides` block in targets.yml, e.g.:
+    #
+    #   - name: "Example Corp"
+    #     portal: "https://example.com/careers"
+    #     portal_type: "custom"
+    #     portal_overrides:
+    #       selectors:
+    #         job_list: "a.job-card[data-href]"
+    #         pagination_next: "button[aria-label='Next']"
+    strategy: "playwright_html"
+    selectors:
+      job_list: "a[href*='/jobs/'], a[href*='/careers/']"
+      pagination_next: null
+
+# Rate limiting so we don't get blocked.
+rate_limits:
+  default_rps: 0.5          # one request every 2s
+  per_host_overrides:
+    "boards-api.greenhouse.io": 2.0
+    "api.lever.co": 2.0
+    "api.ashbyhq.com": 2.0
+  user_agent: "career-ops/0.1 (personal research; lokeshsaireddyk@gmail.com)"
+  respect_robots_txt: true

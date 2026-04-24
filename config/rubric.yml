@@ -1,0 +1,155 @@
+# config/rubric.yml
+# 10-dimension weighted scoring rubric. Each dimension scored 0-5 by the
+# LLM with required citations back to cv.md chunks. Total weight = 9.0.
+#
+# Grade mapping (computed from normalized percent):
+#   A+ ≥ 90, A ≥ 85, B+ ≥ 78, B ≥ 70, C ≥ 60, D ≥ 50, F < 50
+#
+# Change `version` whenever weights or anchors change so stored
+# Evaluations remember which rubric they were scored against.
+
+version: "2026.04.23"
+scale: [0, 5]
+grade_thresholds:
+  "A+": 90
+  "A":  85
+  "B+": 78
+  "B":  70
+  "C":  60
+  "D":  50
+  "F":  0
+
+dimensions:
+
+  - id: technical_fit_genai
+    name: "Technical fit — GenAI / RAG / LLM"
+    weight: 1.5
+    description: >
+      How much of the role is actual GenAI / LLM / RAG work, and how well
+      does Lokesh's Intuit-era RAG copilot + prompt-engineering + LLM-API
+      experience map onto it. Citations REQUIRED from cv.md.
+    anchors:
+      0: "No LLM / NLP work in the role."
+      2: "Some NLP adjacent work, but not the core of the role."
+      3: "Core NLP / ML role, LLM work is secondary."
+      4: "RAG / LLM apps is ~half the role."
+      5: "Role IS production RAG / LLM systems — Lokesh's Intuit work transfers directly."
+
+  - id: stack_overlap
+    name: "Stack overlap"
+    weight: 1.2
+    description: >
+      Intersection between the JD's stack and Lokesh's: Python, FastAPI,
+      LangChain, SQLAlchemy, FAISS / Pinecone / Chroma, AWS / Azure,
+      Docker, Airflow, MLflow, PyTorch / TensorFlow.
+    anchors:
+      0: "Stack is almost entirely foreign (e.g., Scala + Flink + JVM ML)."
+      2: "Python-based but different frameworks (JAX, Ray, Kubeflow only)."
+      3: "Heavy Python + one or two shared tools."
+      4: "Strong overlap — Python + FastAPI + LangChain + vector DB or similar."
+      5: "Near-perfect overlap with Lokesh's Intuit / BoA stack."
+
+  - id: seniority_match
+    name: "Seniority match"
+    weight: 1.0
+    description: >
+      Lokesh is Senior-IC at 4+ YoE. Penalize mid-level roles (downlevel)
+      and Staff-and-up roles where the scope exceeds current experience.
+    anchors:
+      0: "Entry-level / new grad — auto-reject."
+      2: "Mid-level — noticeable downlevel."
+      3: "Mid-Senior boundary."
+      4: "Senior IC — ideal."
+      5: "Senior / Senior II with a clear Staff ladder."
+
+  - id: visa_sponsorship
+    name: "Visa sponsorship (H-1B / STEM OPT)"
+    weight: 1.3
+    description: >
+      Lokesh is on F1 OPT (STEM-eligible). He does NOT need sponsorship
+      today, but WILL need it within 2-3 years. Score using the company's
+      h1b_history tag from targets.yml and any explicit JD language.
+      This is a SOFT signal, not a hard filter.
+    anchors:
+      0: "JD explicitly states 'no sponsorship now or in future' → near-auto-reject."
+      2: "Company has never sponsored; no public LCA filings."
+      3: "Unknown sponsor history (small / private / stealth)."
+      4: "Has sponsored H-1B in last 3 years; multiple LCAs on file."
+      5: "Active, consistent sponsor — Big Tech, AI labs, or top fintech with 10+ LCAs/year."
+
+  - id: domain_alignment
+    name: "Domain / industry alignment"
+    weight: 0.8
+    description: >
+      Areas where Lokesh has shipped: financial services (BoA), tax /
+      fintech (Intuit), enterprise SaaS, AI-native products. Penalize
+      avoid-list domains.
+    anchors:
+      0: "Deal-breaker domain (adtech / gambling / surveillance)."
+      2: "Unfamiliar domain with long ramp."
+      3: "Adjacent domain."
+      4: "Direct adjacency to Intuit / BoA work."
+      5: "Same industry, same problem shape."
+
+  - id: compensation
+    name: "Compensation"
+    weight: 1.0
+    description: >
+      Total comp vs. profile.yml floors. Unknown comp → neutral (3).
+    anchors:
+      0: "Below base floor."
+      2: "Below TC floor."
+      3: "Unknown or at TC floor."
+      4: "At target TC."
+      5: "At or above stretch TC."
+
+  - id: location
+    name: "Location"
+    weight: 0.8
+    description: >
+      Charlotte > Remote-US > Southeast hybrid > Northeast/Bay hybrid >
+      onsite elsewhere. Relocation coverage raises score by ~1.
+    anchors:
+      0: "Onsite outside the Southeast with no relocation."
+      2: "Hybrid in a non-preferred city."
+      3: "Hybrid in an acceptable city, or remote-US with limited travel."
+      4: "Remote-US / Southeast hybrid."
+      5: "Charlotte-based or fully remote-US with quarterly travel."
+
+  - id: growth_trajectory
+    name: "Growth / trajectory"
+    weight: 1.0
+    description: >
+      Role scope, mentorship signals, promotion path to Staff / Principal.
+    anchors:
+      0: "Role scope is narrower than current."
+      2: "Lateral move with no promotion path."
+      3: "Clear Senior role, promotion path unclear."
+      4: "Senior with documented path to Staff."
+      5: "Expanded scope, founding-engineer signals, or fast-track senior role."
+
+  - id: company_stage
+    name: "Company stage / stability"
+    weight: 0.8
+    description: >
+      Post-PMF startup, well-funded scale-up, or stable Big Tech.
+      Penalize pre-seed and anything that looks runway-constrained.
+    anchors:
+      0: "Pre-seed / unclear funding."
+      2: "Series A with short runway."
+      3: "Series B-C."
+      4: "Series D+, public, or Big Tech."
+      5: "Best-in-class in its category (top AI lab, top fintech, FAANG-tier)."
+
+  - id: culture_mission
+    name: "Culture / mission signals"
+    weight: 0.6
+    description: >
+      Engineering culture in JD, eng-blog presence, open-source, public
+      talks, Glassdoor deltas. Mission alignment.
+    anchors:
+      0: "Multiple red flags (poor Glassdoor, opaque eng culture)."
+      2: "Neutral — nothing notable either way."
+      3: "Visible engineering blog / some open-source."
+      4: "Strong engineering culture signals and mission I care about."
+      5: "Best-in-class: public roadmap, strong eng blog, and mission I'm excited by."

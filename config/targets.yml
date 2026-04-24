@@ -1,0 +1,213 @@
+# config/targets.yml
+# Target companies. The `h1b_history` tag feeds directly into the
+# visa-sponsorship rubric dimension. Values:
+#   - "heavy"     → 10+ LCAs/year in last 3 years
+#   - "active"    → sponsored in last 3 years, lower volume
+#   - "occasional"→ has sponsored but not recently
+#   - "none"      → no LCAs on file
+#   - "unknown"   → private / small / stealth
+#
+# Verify before adding a company: https://h1bdata.info or myvisajobs.com
+# (public DOL LCA filings). Update this file quarterly.
+
+companies:
+
+  # ── Top AI labs ──────────────────────────────────────────────────────
+  - name: "Anthropic"
+    category: "AI lab"
+    stage: "Late stage"
+    h1b_history: "heavy"
+    portal: "https://www.anthropic.com/careers"
+    portal_type: "greenhouse"
+    notes: "Claude team; RAG and prompt-eng work overlaps directly."
+
+  - name: "OpenAI"
+    category: "AI lab"
+    stage: "Late stage"
+    h1b_history: "heavy"
+    portal: "https://openai.com/careers/search"
+    portal_type: "greenhouse"
+
+  - name: "Google DeepMind"
+    category: "AI lab"
+    stage: "Big Tech"
+    h1b_history: "heavy"
+    portal: "https://www.google.com/about/careers/applications/jobs"
+    portal_type: "custom"
+
+  - name: "Cohere"
+    category: "AI lab"
+    stage: "Late stage"
+    h1b_history: "active"
+    portal: "https://cohere.com/careers"
+    portal_type: "lever"
+
+  - name: "Mistral AI"
+    category: "AI lab"
+    stage: "Growth"
+    h1b_history: "occasional"
+    portal: "https://mistral.ai/careers"
+    portal_type: "ashby"
+
+  # ── Big Tech ─────────────────────────────────────────────────────────
+  - name: "Meta"
+    category: "Big Tech"
+    stage: "Public"
+    h1b_history: "heavy"
+    portal: "https://www.metacareers.com/jobs"
+    portal_type: "custom"
+
+  - name: "Amazon / AWS AI"
+    category: "Big Tech"
+    stage: "Public"
+    h1b_history: "heavy"
+    portal: "https://www.amazon.jobs/en/teams/aws-ai"
+    portal_type: "custom"
+
+  - name: "Microsoft"
+    category: "Big Tech"
+    stage: "Public"
+    h1b_history: "heavy"
+    portal: "https://careers.microsoft.com/us/en/search-results"
+    portal_type: "custom"
+
+  - name: "NVIDIA"
+    category: "Big Tech"
+    stage: "Public"
+    h1b_history: "heavy"
+    portal: "https://www.nvidia.com/en-us/about-nvidia/careers"
+    portal_type: "workday"
+
+  # ── AI-native scale-ups ──────────────────────────────────────────────
+  - name: "Databricks"
+    category: "Data / AI platform"
+    stage: "Pre-IPO"
+    h1b_history: "heavy"
+    portal: "https://www.databricks.com/company/careers"
+    portal_type: "greenhouse"
+
+  - name: "Snowflake / Cortex"
+    category: "Data / AI platform"
+    stage: "Public"
+    h1b_history: "heavy"
+    portal: "https://careers.snowflake.com"
+    portal_type: "greenhouse"
+
+  - name: "Scale AI"
+    category: "AI infra"
+    stage: "Growth"
+    h1b_history: "active"
+    portal: "https://scale.com/careers"
+    portal_type: "greenhouse"
+
+  - name: "Hugging Face"
+    category: "AI infra"
+    stage: "Growth"
+    h1b_history: "occasional"
+    portal: "https://apply.workable.com/huggingface"
+    portal_type: "workable"
+
+  - name: "LangChain"
+    category: "AI infra"
+    stage: "Series A/B"
+    h1b_history: "unknown"
+    portal: "https://www.langchain.com/careers"
+    portal_type: "ashby"
+
+  - name: "Pinecone"
+    category: "Vector DB"
+    stage: "Growth"
+    h1b_history: "active"
+    portal: "https://www.pinecone.io/careers"
+    portal_type: "greenhouse"
+
+  - name: "Weaviate"
+    category: "Vector DB"
+    stage: "Series B"
+    h1b_history: "unknown"
+    portal: "https://weaviate.io/company/careers"
+    portal_type: "ashby"
+
+  - name: "Glean"
+    category: "Enterprise search"
+    stage: "Late stage"
+    h1b_history: "active"
+    portal: "https://www.glean.com/careers"
+    portal_type: "greenhouse"
+
+  # ── Fintech / financial services (domain fit) ────────────────────────
+  - name: "Intuit"
+    category: "Fintech"
+    stage: "Public"
+    h1b_history: "heavy"
+    portal: "https://www.intuit.com/careers"
+    portal_type: "workday"
+    notes: "Prior employer — check internal mobility."
+
+  - name: "Bank of America"
+    category: "Bank"
+    stage: "Public"
+    h1b_history: "heavy"
+    portal: "https://careers.bankofamerica.com"
+    portal_type: "workday"
+    notes: "Prior employer — check internal mobility."
+
+  - name: "Stripe"
+    category: "Fintech"
+    stage: "Pre-IPO"
+    h1b_history: "heavy"
+    portal: "https://stripe.com/jobs/search"
+    portal_type: "greenhouse"
+
+  - name: "Plaid"
+    category: "Fintech"
+    stage: "Late stage"
+    h1b_history: "active"
+    portal: "https://plaid.com/careers"
+    portal_type: "greenhouse"
+
+  - name: "Capital One"
+    category: "Bank"
+    stage: "Public"
+    h1b_history: "heavy"
+    portal: "https://www.capitalonecareers.com"
+    portal_type: "workday"
+
+  # ── Dev tools / Enterprise SaaS ──────────────────────────────────────
+  - name: "GitHub / Copilot"
+    category: "Dev tools"
+    stage: "Big Tech (Microsoft)"
+    h1b_history: "heavy"
+    portal: "https://github.com/about/careers"
+    portal_type: "greenhouse"
+
+  - name: "Cursor (Anysphere)"
+    category: "Dev tools"
+    stage: "Series A/B"
+    h1b_history: "unknown"
+    portal: "https://cursor.com/careers"
+    portal_type: "ashby"
+
+  - name: "Replit"
+    category: "Dev tools"
+    stage: "Growth"
+    h1b_history: "active"
+    portal: "https://replit.com/site/careers"
+    portal_type: "ashby"
+
+  - name: "Perplexity"
+    category: "AI search"
+    stage: "Growth"
+    h1b_history: "active"
+    portal: "https://www.perplexity.ai/careers"
+    portal_type: "greenhouse"
+
+  - name: "Notion AI"
+    category: "Productivity"
+    stage: "Late stage"
+    h1b_history: "active"
+    portal: "https://www.notion.so/careers"
+    portal_type: "greenhouse"
+
+# Append new targets here. Re-run `career-ops profile reindex` is NOT needed
+# for adding companies; rubric uses this file at evaluation time.

@@ -1,0 +1,41 @@
+id: enterprise_saas_ml
+company: "MidTier SaaS Co"
+title: "ML Engineer"
+location: "Charlotte, NC (hybrid)"
+h1b_history: "active"
+
+expected:
+  grade: "B"
+  percent_range: [69, 74]           # computed from labeled dims under rubric v2026.04.23
+  dimensions:
+    technical_fit_genai: 3      # some NLP, not core LLM / RAG
+    stack_overlap:        4      # Python + AWS + FastAPI
+    seniority_match:      4
+    domain_alignment:     4      # enterprise SaaS ≈ Intuit-adjacent
+    compensation:         3      # at TC floor, not target
+    location:             5      # Charlotte
+    growth_trajectory:    3      # Senior with vague promotion path
+    company_stage:        3      # Series C
+    culture_mission:      3
+
+jd: |
+  We are a Series C enterprise SaaS company building ML-powered analytics
+  for B2B customers. We're hiring a Senior ML Engineer to own our
+  forecasting and anomaly-detection stack.
+
+  You will:
+    - Own end-to-end ML models in Python (Scikit-learn, XGBoost,
+      LightGBM, some PyTorch).
+    - Build FastAPI microservices for model serving on AWS.
+    - Contribute to our feature store and experimentation platform.
+    - Collaborate with PMs to translate business needs into model
+      objectives.
+
+  Requirements:
+    - 4+ years ML/data-science experience.
+    - Strong Python; comfort with SQL and data pipelines.
+    - Production ML deployment experience.
+    - LLM / NLP experience is a plus but not required.
+
+  Charlotte, NC hybrid (3 days onsite).
+  We sponsor H-1B for the right candidate.

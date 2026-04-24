@@ -1,0 +1,110 @@
+# config/profile.yml
+# Identity and search preferences. This file drives scoring, filtering,
+# and CV tailoring. Edit when anything material changes.
+
+identity:
+  name: "Lokesh Reddy"
+  email: "lokeshsaireddyk@gmail.com"
+  phone: "+1-919-656-2144"
+  location: "Charlotte, NC"
+  linkedin: "https://www.linkedin.com/in/lokeshsaireddyk"
+  github: ""                         # add when public
+  portfolio: ""
+
+# Work authorization — drives the visa-sponsorship scoring dimension.
+# This is a SOFT signal per my rubric.yml (weight 1.3, not a hard filter).
+work_authorization:
+  current_status: "F1 OPT"
+  stem_opt_eligible: true             # MS in Information Systems = STEM
+  requires_sponsorship_now: false     # not yet — on OPT
+  requires_sponsorship_future: true   # will need H-1B (or equivalent)
+  authorized_countries: ["US"]
+  open_to_relocation: true
+  open_to_remote: true
+
+# Target roles. Ordered by preference. Used by the evaluator to weight
+# technical-fit and seniority dimensions.
+target_roles:
+  - title: "ML Engineer"
+    seniority: ["Senior", "Staff"]
+    focus: ["GenAI", "LLM", "RAG", "Semantic Search", "NLP"]
+  - title: "GenAI Engineer"
+    seniority: ["Senior", "Staff"]
+    focus: ["LLM applications", "Agents", "RAG", "Production LLM systems"]
+  - title: "Applied AI Engineer"
+    seniority: ["Senior"]
+    focus: ["LLM apps", "Copilot products"]
+  - title: "Data Scientist"
+    seniority: ["Senior"]
+    focus: ["Applied ML", "NLP", "Experimentation", "GenAI evaluation"]
+  - title: "AI Platform Engineer / MLOps Engineer"
+    seniority: ["Senior"]
+    focus: ["LLMOps", "Model serving", "Evaluation infra", "Vector DBs"]
+
+# Seniority calibration — I'm 4+ YoE, Senior-IC level.
+seniority:
+  years_experience: 4
+  level_min: "Mid"      # below this → auto-downweight
+  level_target: "Senior"
+  level_max: "Staff"    # above this → stretch, penalize slightly
+
+# Compensation floors (USD, total comp including equity).
+compensation:
+  floor_base_usd: 150000
+  floor_tc_usd: 180000
+  target_tc_usd: 220000
+  stretch_tc_usd: 280000
+
+# Location preferences (best → worst). Unknown → neutral.
+locations:
+  preferred:
+    - "Charlotte, NC"
+    - "Remote (US)"
+    - "Raleigh-Durham, NC"
+    - "Atlanta, GA"
+    - "New York, NY (hybrid ok)"
+    - "Austin, TX"
+  acceptable:
+    - "San Francisco, CA"
+    - "Seattle, WA"
+    - "Boston, MA"
+  avoid:
+    - "Onsite-only outside the Southeast unless relocation is covered"
+
+# Industries and domains where I have demonstrated value.
+domains:
+  strong:
+    - "Financial services (Bank of America, Erica chatbot)"
+    - "Tax / fintech (Intuit)"
+    - "Enterprise SaaS"
+    - "AI-native / foundation-model products"
+  acceptable:
+    - "Healthcare AI"
+    - "E-commerce"
+    - "Developer tools"
+  avoid:
+    - "Adtech"
+    - "Gambling"
+    - "Surveillance tech"
+
+# Non-negotiables — these are hard filters, not rubric dimensions.
+deal_breakers:
+  - "Role that explicitly says 'no visa sponsorship, now or in future'"
+  - "Pure data-engineering / ETL role with no ML component"
+  - "Contractor role without conversion path"
+  - "Onsite 5 days outside the Southeast US without relocation"
+
+# Signals that materially raise my interest.
+green_flags:
+  - "Production LLM / RAG system as the core product"
+  - "Engineering blog with technical depth"
+  - "Team with published research or open-source contributions"
+  - "Has sponsored H-1B in last 3 years (LCA data)"
+  - "Clear ladder up to Staff / Principal"
+  - "Explicit mentorship culture"
+
+# Things that trigger extra scrutiny in the rubric.
+yellow_flags:
+  - "Stealth startup with no public tech info"
+  - "Generalist AI role without a specific team"
+  - "Series A at this stage of my career"
