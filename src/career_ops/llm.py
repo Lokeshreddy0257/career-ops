@@ -47,11 +47,38 @@ def complete_text(
 # ── Providers ────────────────────────────────────────────────────────
 
 def _call_provider(prompt: str, *, system: str | None, temperature: float, provider: str) -> str:
-    if provider == "anthropic":
+    s = settings()
+    resolved = provider
+    if provider == "auto":
+        if s.gemini_api_key:
+            resolved = "gemini"
+        elif s.anthropic_api_key:
+            resolved = "anthropic"
+        elif s.openai_api_key:
+            resolved = "openai"
+        else:
+            raise ValueError("No API key found. Set GEMINI_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY.")
+    if resolved == "gemini":
+        return _call_gemini(prompt, system=system, temperature=temperature)
+    if resolved == "anthropic":
         return _call_anthropic(prompt, system=system, temperature=temperature)
-    if provider == "openai":
+    if resolved == "openai":
         return _call_openai(prompt, system=system, temperature=temperature)
-    raise ValueError(f"Unknown llm_provider: {provider}")
+    raise ValueError(f"Unknown llm_provider: {resolved}")
+
+
+def _call_gemini(prompt: str, *, system: str | None, temperature: float) -> str:
+    import google.generativeai as genai
+
+    s = settings()
+    genai.configure(api_key=s.gemini_api_key)
+    full_prompt = f"{system}\n\n{prompt}" if system else prompt
+    model = genai.GenerativeModel(s.gemini_model)
+    response = model.generate_content(
+        full_prompt,
+        generation_config=genai.GenerationConfig(temperature=temperature),
+    )
+    return response.text
 
 
 def _call_anthropic(prompt: str, *, system: str | None, temperature: float) -> str:

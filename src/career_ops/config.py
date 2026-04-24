@@ -19,10 +19,12 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", env_prefix="CAREER_OPS_")
 
-    # LLM
-    llm_provider: str = "anthropic"          # "anthropic" | "openai"
+    # LLM — set llm_provider or let it auto-detect from which key is present
+    llm_provider: str = "auto"               # "auto" | "gemini" | "anthropic" | "openai"
+    gemini_model: str = "gemini-1.5-flash"
     anthropic_model: str = "claude-sonnet-4-5"
     openai_model: str = "gpt-4o"
+    gemini_api_key: str | None = None
     anthropic_api_key: str | None = None
     openai_api_key: str | None = None
 
