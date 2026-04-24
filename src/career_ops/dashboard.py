@@ -51,34 +51,36 @@ def _fetch_stats() -> dict[str, Any]:
     data = _api_get("/stats")
     if data is not None:
         return data
-    # Fallback: direct DB.
-    from career_ops import storage
-    storage.init_db()
-    for s in storage.session():
-        jobs_total = s.query(storage.Job).count()
-        evals_total = s.query(storage.EvaluationRow).count()
-        grade_dist: dict[str, int] = {}
-        for row in s.query(storage.EvaluationRow.grade).all():
-            grade_dist[row[0]] = grade_dist.get(row[0], 0) + 1
-        visa_dist: dict[str, int] = {}
-        rows = (
-            s.query(storage.Company.h1b_history, storage.EvaluationRow.id)
-             .join(storage.Job, storage.Company.id == storage.Job.company_id)
-             .join(storage.EvaluationRow, storage.EvaluationRow.job_id == storage.Job.id)
-             .all()
-        )
-        for h, _ in rows:
-            visa_dist[h] = visa_dist.get(h, 0) + 1
-        status_dist: dict[str, int] = {}
-        for row in s.query(storage.Application.status).all():
-            status_dist[row[0]] = status_dist.get(row[0], 0) + 1
-        return {
-            "jobs_total": jobs_total,
-            "evaluations_total": evals_total,
-            "grade_distribution": grade_dist,
-            "visa_distribution": visa_dist,
-            "applications_by_status": status_dist,
-        }
+    try:
+        from career_ops import storage
+        storage.init_db()
+        for s in storage.session():
+            jobs_total = s.query(storage.Job).count()
+            evals_total = s.query(storage.EvaluationRow).count()
+            grade_dist: dict[str, int] = {}
+            for row in s.query(storage.EvaluationRow.grade).all():
+                grade_dist[row[0]] = grade_dist.get(row[0], 0) + 1
+            visa_dist: dict[str, int] = {}
+            rows = (
+                s.query(storage.Company.h1b_history, storage.EvaluationRow.id)
+                 .join(storage.Job, storage.Company.id == storage.Job.company_id)
+                 .join(storage.EvaluationRow, storage.EvaluationRow.job_id == storage.Job.id)
+                 .all()
+            )
+            for h, _ in rows:
+                visa_dist[h] = visa_dist.get(h, 0) + 1
+            status_dist: dict[str, int] = {}
+            for row in s.query(storage.Application.status).all():
+                status_dist[row[0]] = status_dist.get(row[0], 0) + 1
+            return {
+                "jobs_total": jobs_total,
+                "evaluations_total": evals_total,
+                "grade_distribution": grade_dist,
+                "visa_distribution": visa_dist,
+                "applications_by_status": status_dist,
+            }
+    except Exception:
+        pass
     return {}
 
 
@@ -86,36 +88,39 @@ def _fetch_evaluations(**filters) -> list[dict[str, Any]]:
     data = _api_get("/evaluations", **{k: v for k, v in filters.items() if v})
     if data is not None:
         return data
-    from career_ops import storage
-    storage.init_db()
-    for s in storage.session():
-        q = (
-            s.query(storage.EvaluationRow, storage.Job, storage.Company)
-             .join(storage.Job, storage.EvaluationRow.job_id == storage.Job.id)
-             .join(storage.Company, storage.Job.company_id == storage.Company.id)
-             .order_by(storage.EvaluationRow.percent.desc())
-        )
-        if filters.get("grade"):
-            q = q.filter(storage.EvaluationRow.grade.in_(filters["grade"].split(",")))
-        if filters.get("company"):
-            q = q.filter(storage.Company.name.ilike(f"%{filters['company']}%"))
-        if filters.get("h1b"):
-            q = q.filter(storage.Company.h1b_history == filters["h1b"])
-        rows = q.limit(filters.get("limit", 100)).all()
-        return [
-            {
-                "id": r.EvaluationRow.id,
-                "job_id": r.Job.id,
-                "company": r.Company.name,
-                "title": r.Job.title,
-                "location": r.Job.location,
-                "h1b_history": r.Company.h1b_history,
-                "grade": r.EvaluationRow.grade,
-                "percent": r.EvaluationRow.percent,
-                "created_at": r.EvaluationRow.created_at.isoformat(),
-            }
-            for r in rows
-        ]
+    try:
+        from career_ops import storage
+        storage.init_db()
+        for s in storage.session():
+            q = (
+                s.query(storage.EvaluationRow, storage.Job, storage.Company)
+                 .join(storage.Job, storage.EvaluationRow.job_id == storage.Job.id)
+                 .join(storage.Company, storage.Job.company_id == storage.Company.id)
+                 .order_by(storage.EvaluationRow.percent.desc())
+            )
+            if filters.get("grade"):
+                q = q.filter(storage.EvaluationRow.grade.in_(filters["grade"].split(",")))
+            if filters.get("company"):
+                q = q.filter(storage.Company.name.ilike(f"%{filters['company']}%"))
+            if filters.get("h1b"):
+                q = q.filter(storage.Company.h1b_history == filters["h1b"])
+            rows = q.limit(filters.get("limit", 100)).all()
+            return [
+                {
+                    "id": r.EvaluationRow.id,
+                    "job_id": r.Job.id,
+                    "company": r.Company.name,
+                    "title": r.Job.title,
+                    "location": r.Job.location,
+                    "h1b_history": r.Company.h1b_history,
+                    "grade": r.EvaluationRow.grade,
+                    "percent": r.EvaluationRow.percent,
+                    "created_at": r.EvaluationRow.created_at.isoformat(),
+                }
+                for r in rows
+            ]
+    except Exception:
+        pass
     return []
 
 
@@ -123,30 +128,33 @@ def _fetch_evaluation(evaluation_id: int) -> dict[str, Any] | None:
     data = _api_get(f"/evaluations/{evaluation_id}")
     if data is not None:
         return data
-    from career_ops import storage
-    for s in storage.session():
-        row = (
-            s.query(storage.EvaluationRow, storage.Job, storage.Company)
-             .join(storage.Job, storage.EvaluationRow.job_id == storage.Job.id)
-             .join(storage.Company, storage.Job.company_id == storage.Company.id)
-             .filter(storage.EvaluationRow.id == evaluation_id)
-             .one_or_none()
-        )
-        if not row:
-            return None
-        return {
-            "id": row.EvaluationRow.id,
-            "job_id": row.Job.id,
-            "company": row.Company.name,
-            "title": row.Job.title,
-            "location": row.Job.location,
-            "h1b_history": row.Company.h1b_history,
-            "grade": row.EvaluationRow.grade,
-            "percent": row.EvaluationRow.percent,
-            "dimension_scores": row.EvaluationRow.scores_json,
-            "model": row.EvaluationRow.model,
-            "rubric_version": row.EvaluationRow.rubric_version,
-        }
+    try:
+        from career_ops import storage
+        for s in storage.session():
+            row = (
+                s.query(storage.EvaluationRow, storage.Job, storage.Company)
+                 .join(storage.Job, storage.EvaluationRow.job_id == storage.Job.id)
+                 .join(storage.Company, storage.Job.company_id == storage.Company.id)
+                 .filter(storage.EvaluationRow.id == evaluation_id)
+                 .one_or_none()
+            )
+            if not row:
+                return None
+            return {
+                "id": row.EvaluationRow.id,
+                "job_id": row.Job.id,
+                "company": row.Company.name,
+                "title": row.Job.title,
+                "location": row.Job.location,
+                "h1b_history": row.Company.h1b_history,
+                "grade": row.EvaluationRow.grade,
+                "percent": row.EvaluationRow.percent,
+                "dimension_scores": row.EvaluationRow.scores_json,
+                "model": row.EvaluationRow.model,
+                "rubric_version": row.EvaluationRow.rubric_version,
+            }
+    except Exception:
+        pass
     return None
 
 
