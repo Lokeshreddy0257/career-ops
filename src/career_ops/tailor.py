@@ -159,30 +159,61 @@ def _render_markdown(summary: str, bullets: list[TailoredBullet], profile: dict)
 
 
 def _render_pdf(markdown_text: str, *, company: str) -> Path:
-    """Render markdown → HTML via markdown-it-py → PDF via WeasyPrint.
-
-    A minimal template is used if templates/cv_html.jinja is missing.
-    """
-    from markdown_it import MarkdownIt
-    from jinja2 import Environment, FileSystemLoader, select_autoescape
-    from weasyprint import HTML
+    """Render markdown → PDF via reportlab (pure Python, no system deps)."""
+    import re
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
+    from reportlab.lib.enums import TA_LEFT, TA_CENTER
 
     s = settings()
-    md = MarkdownIt("commonmark")
-    body_html = md.render(markdown_text)
-
-    env = Environment(
-        loader=FileSystemLoader(str(s.templates_dir)),
-        autoescape=select_autoescape(),
-    )
-    try:
-        template = env.get_template("cv_html.jinja")
-        html = template.render(body=body_html, title=f"Lokesh Reddy — {company}")
-    except Exception:
-        html = f"<html><head><meta charset='utf-8'></head><body>{body_html}</body></html>"
-
     s.artifacts_dir.mkdir(parents=True, exist_ok=True)
     slug = company.lower().replace(" ", "_").replace("/", "_")
     out = s.artifacts_dir / f"cv_{slug}_{date.today().isoformat()}.pdf"
-    HTML(string=html).write_pdf(str(out))
+
+    doc = SimpleDocTemplate(
+        str(out), pagesize=LETTER,
+        leftMargin=0.75 * inch, rightMargin=0.75 * inch,
+        topMargin=0.75 * inch, bottomMargin=0.75 * inch,
+    )
+
+    base = getSampleStyleSheet()
+    styles = {
+        "h1": ParagraphStyle("h1", parent=base["Heading1"], fontSize=18, spaceAfter=2, textColor=colors.HexColor("#1a1a2e"), alignment=TA_CENTER),
+        "h2": ParagraphStyle("h2", parent=base["Heading2"], fontSize=12, spaceBefore=10, spaceAfter=3, textColor=colors.HexColor("#16213e"), borderPad=2),
+        "h3": ParagraphStyle("h3", parent=base["Heading3"], fontSize=10, spaceBefore=6, spaceAfter=2, textColor=colors.HexColor("#0f3460")),
+        "body": ParagraphStyle("body", parent=base["Normal"], fontSize=9.5, leading=14, spaceAfter=3),
+        "bullet": ParagraphStyle("bullet", parent=base["Normal"], fontSize=9.5, leading=14, leftIndent=12, spaceAfter=2, bulletIndent=0),
+    }
+
+    story = []
+    for line in markdown_text.splitlines():
+        line = line.rstrip()
+        if not line:
+            story.append(Spacer(1, 4))
+            continue
+        # escape XML special chars
+        safe = line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        # inline bold: **text**
+        safe = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", safe)
+        # inline italic: *text*
+        safe = re.sub(r"\*(.+?)\*", r"<i>\1</i>", safe)
+
+        if safe.startswith("# "):
+            story.append(Paragraph(safe[2:], styles["h1"]))
+            story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor("#16213e"), spaceAfter=4))
+        elif safe.startswith("## "):
+            story.append(Spacer(1, 6))
+            story.append(Paragraph(safe[3:], styles["h2"]))
+            story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#cccccc"), spaceAfter=2))
+        elif safe.startswith("### "):
+            story.append(Paragraph(safe[4:], styles["h3"]))
+        elif safe.startswith("- ") or safe.startswith("* "):
+            story.append(Paragraph(f"• {safe[2:]}", styles["bullet"]))
+        else:
+            story.append(Paragraph(safe, styles["body"]))
+
+    doc.build(story)
     return out
