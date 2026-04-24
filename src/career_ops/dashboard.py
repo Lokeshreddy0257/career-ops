@@ -19,7 +19,13 @@ Run:
 from __future__ import annotations
 
 import os
+import sys
 from typing import Any
+
+# Ensure the package is importable when Streamlit Cloud runs this file directly
+_src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
 
 import httpx
 import streamlit as st
