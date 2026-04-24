@@ -50,14 +50,18 @@ def _call_provider(prompt: str, *, system: str | None, temperature: float, provi
     s = settings()
     resolved = provider
     if provider == "auto":
-        if s.gemini_api_key:
+        if s.groq_api_key:
+            resolved = "groq"
+        elif s.gemini_api_key:
             resolved = "gemini"
         elif s.anthropic_api_key:
             resolved = "anthropic"
         elif s.openai_api_key:
             resolved = "openai"
         else:
-            raise ValueError("No API key found. Set GEMINI_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY.")
+            raise ValueError("No API key found. Set CAREER_OPS_GROQ_API_KEY, GEMINI_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY.")
+    if resolved == "groq":
+        return _call_groq(prompt, system=system, temperature=temperature)
     if resolved == "gemini":
         return _call_gemini(prompt, system=system, temperature=temperature)
     if resolved == "anthropic":
@@ -65,6 +69,23 @@ def _call_provider(prompt: str, *, system: str | None, temperature: float, provi
     if resolved == "openai":
         return _call_openai(prompt, system=system, temperature=temperature)
     raise ValueError(f"Unknown llm_provider: {resolved}")
+
+
+def _call_groq(prompt: str, *, system: str | None, temperature: float) -> str:
+    from groq import Groq
+
+    s = settings()
+    client = Groq(api_key=s.groq_api_key)
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+    resp = client.chat.completions.create(
+        model=s.groq_model,
+        messages=messages,
+        temperature=temperature,
+    )
+    return resp.choices[0].message.content or ""
 
 
 def _call_gemini(prompt: str, *, system: str | None, temperature: float) -> str:
